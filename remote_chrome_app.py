@@ -65,11 +65,10 @@ def login_state():
 def require_login():
     app_pw = get_app_password()
     if not app_pw:
-        st.error(
-            "APP_PASSWORD belum diatur, aplikasi dikunci demi keamanan.\n\n"
-            "Jalankan: `export APP_PASSWORD='passwordmu'` lalu `streamlit run remote_chrome_app.py`"
-        )
-        st.stop()
+        # Tanpa APP_PASSWORD -> langsung masuk (tanpa login).
+        st.session_state["auth_ok"] = True
+        st.session_state["no_login_mode"] = True
+        return
 
     if st.session_state.get("auth_ok"):
         return
@@ -228,6 +227,9 @@ def cdp(port, path, method="GET"):
 # UI
 # =====================================================================
 st.title("🖥️ Remote Chrome (X11 + noVNC + Debug Port)")
+if st.session_state.get("no_login_mode"):
+    st.warning("Mode tanpa login aktif (APP_PASSWORD tidak diatur). "
+               "Pastikan Streamlit hanya diakses lewat 127.0.0.1 / SSH tunnel.")
 mgr = get_manager()
 
 with st.sidebar:
